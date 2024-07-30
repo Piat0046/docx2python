@@ -16,6 +16,7 @@ during the extraction.
 
 from __future__ import annotations
 
+import re
 import warnings
 from collections import defaultdict
 from contextlib import suppress
@@ -44,11 +45,10 @@ def _get_bullet_function(numFmt: str) -> Callable[[int], str]:
         "bullet": nums.bullet,
     }
     try:
-        retval_: Callable[[int], str] = numFmt2bullet_function[numFmt]
+        retval_: Callable[[int], str] = numFmt2bullet_function[numFmt["numFmt"]]
     except KeyError:
         warnings.warn(
-            f"{numFmt} numbering format not implemented, "
-            + f"substituting '{nums.bullet()}'",
+            f"{numFmt} numbering format not implemented, " + f"substituting '{nums.bullet()}'",
             stacklevel=2,
         )
         return nums.bullet
@@ -212,9 +212,7 @@ class BulletGenerator:
         self._par2par_number[paragraph] = par_number
         return par_number
 
-    def get_list_position(
-        self, paragraph: EtreeElement
-    ) -> tuple[str | None, list[int]]:
+    def get_list_position(self, paragraph: EtreeElement) -> tuple[str | None, list[int]]:
         """Get the current numbering values.
 
         :return: numbering values as a tuple of integers
@@ -275,5 +273,18 @@ class BulletGenerator:
                 bullet += ")"
             return "\t" * int(ilvl) + bullet + "\t"
 
-        get_unformatted_bullet_str = _get_bullet_function(numFmt)
-        return format_bullet(get_unformatted_bullet_str(number))
+        def format_number(template, number):
+            # 정규식 패턴: %와 숫자 조합 찾기
+            pattern = re.compile(r"%\d")
+            # 변환 함수를 사용하여 대체
+            result = pattern.sub(lambda x: str(number), template)
+            return "\t" * int(ilvl) + result + "\t"
+
+        if numFmt["numFmt"] == "decimal":
+            lvlText = numFmt["lvlText"]
+
+            return format_number(lvlText, number)
+
+        else:
+            get_unformatted_bullet_str = _get_bullet_function(numFmt)
+            return format_bullet(get_unformatted_bullet_str(number))
