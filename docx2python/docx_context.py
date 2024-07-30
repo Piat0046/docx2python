@@ -71,9 +71,13 @@ def collect_numFmts(numFmts_root: EtreeElement) -> dict[str, list[str]]:
         abstractNumId2numFmts[id_] = []
         for lvl in findall_by_qn(abstractNum, "w:lvl"):
             numFmt = find_by_qn(lvl, "w:numFmt")
+            lvlText = find_by_qn(lvl, "w:lvlText")
             if numFmt is not None:
                 abstractNumId2numFmts[id_].append(
-                    str(get_attrib_by_qn(numFmt, "w:val"))
+                    {
+                        "numFmt": str(get_attrib_by_qn(numFmt, "w:val")),
+                        "lvlText": str(get_attrib_by_qn(lvlText, "w:val")),
+                    }
                 )
 
     numId2numFmts: dict[str, list[str]] = {}
@@ -156,8 +160,7 @@ def collect_rels(zipf: zipfile.ZipFile) -> dict[str, list[dict[str, str]]]:
     path2rels: dict[str, list[dict[str, str]]] = {}
     for rels in (x for x in zipf.namelist() if x[-5:] == ".rels"):
         path2rels[rels] = [
-            {str(y): str(z) for y, z in x.attrib.items()}
-            for x in etree.fromstring(zipf.read(rels))
+            {str(y): str(z) for y, z in x.attrib.items()} for x in etree.fromstring(zipf.read(rels))
         ]
     return path2rels
 
