@@ -280,10 +280,49 @@ class BulletGenerator:
             result = pattern.sub(lambda x: str(number), template)
             return "\t" * int(ilvl) + result + "\t"
 
+        def format_circle_number(template, number):
+            # 정규식 패턴: %와 숫자 조합 찾기
+            pattern = re.compile(r"%\d")
+            # 변환 함수를 사용하여 대체
+            result = pattern.sub(lambda x: str(number), template)
+
+            # TODO : 객체로 관리하기
+            unicode_dict = {
+                "0": "\u24EA",
+                "1": "\u2460",
+                "2": "\u2461",
+                "3": "\u2462",
+                "4": "\u2463",
+                "5": "\u2464",
+                "6": "\u2465",
+                "7": "\u2466",
+                "8": "\u2467",
+                "9": "\u2468",
+                "10": "\u2469",
+                "11": "\u246A",
+                "12": "\u246B",
+                "13": "\u246C",
+                "14": "\u246D",
+                "15": "\u246F",
+                "16": "\u246F",
+                "17": "\u2470",
+                "18": "\u2471",
+                "19": "\u2472",
+                "20": "\u2473",
+            }
+            if unicode_dict.get(str(result)):
+                number = unicode_dict.get(str(result))
+            else:
+                number = result
+            return "\t" * int(ilvl) + number + "\t"
+
         if numFmt["numFmt"] == "decimal":
             lvlText = numFmt["lvlText"]
 
             return format_number(lvlText, number)
+        elif numFmt["numFmt"] == "decimalEnclosedCircle":
+            lvlText = numFmt["lvlText"]
+            return format_circle_number(lvlText, number)
 
         else:
             get_unformatted_bullet_str = _get_bullet_function(numFmt)
