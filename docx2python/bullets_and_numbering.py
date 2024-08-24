@@ -122,6 +122,26 @@ class BulletGenerator:
         # seen. See docstring for self._get_par_number.
         self._par2par_number: dict[EtreeElement, int | None] = {}
 
+    def _get_del(self, paragraph: EtreeElement) -> EtreeElement | None:
+        """Get the parent element of the numId and ilvl elements.
+
+        :param paragraph: <w:p> xml element
+        :return: <w:numPr> xml element or None if this fails.
+        """
+        try:
+            pPr = next(iterfind_by_qn(paragraph, "w:pPr"))
+            try:
+                rPr = next(iterfind_by_qn(pPr, "w:rPr"))
+                wdel = next(iterfind_by_qn(rPr, "w:del"))
+                if wdel is not None:
+                    return wdel
+                else:
+                    return None
+            except StopIteration as e:
+                return None
+        except (StopIteration, KeyError):
+            return None
+
     def _get_numPr(self, paragraph: EtreeElement) -> EtreeElement | None:
         """Get the parent element of the numId and ilvl elements.
 
@@ -230,6 +250,9 @@ class BulletGenerator:
 
         The numbering values are the current count at each indentation level.
         """
+        wdel = self._get_del(paragraph)
+        if wdel is not None:
+            return (wdel, [])
         numPr, _ = self.get_bullet_fmt(paragraph)
         if numPr is None:
             return (numPr, [])
@@ -250,6 +273,9 @@ class BulletGenerator:
 
         bullet preceded by one tab for every indentation level.
         """
+        wdel = self._get_del(paragraph)
+        if wdel is not None:
+            return ""
         numId, ilvl = self.get_bullet_fmt(paragraph)
         number = self.get_par_number(paragraph)
         if numId is None:
