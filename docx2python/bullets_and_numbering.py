@@ -287,7 +287,7 @@ class BulletGenerator:
         try:
             numFmt = self.numId2numFmts[str(numId)][int(ilvl)]
         except (KeyError, IndexError):
-            numFmt = "bullet"
+            numFmt = {"numFmt": "bullet"}
 
         def format_bullet(bullet: str) -> str:
             """Indent, format and pad the bullet or number string.
